@@ -178,7 +178,7 @@
 
             if (error || !adminRow) {
                 await _supabase.auth.signOut();
-                window.location.href = 'admin-login.html';
+                window.location.href = 'login.html';
                 return;
             }
 
