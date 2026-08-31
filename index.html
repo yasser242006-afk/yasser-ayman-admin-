@@ -132,7 +132,7 @@
                 <span class="badge-admin">لوحة تحكم الأدمن</span>
             </div>
 
-            <!-- نموذج تسجيل الدخول -->
+            <!-- نموذج تسجيل الدخول (مفيش إنشاء حساب خالص) -->
             <div id="login-form">
                 <div class="form-group">
                     <label>البريد الإلكتروني</label>
@@ -175,6 +175,7 @@
                         <i class="fab fa-facebook-f"></i> Facebook
                     </button>
                 </div>
+                <!-- ملحوظ: مفيش هنا أي رابط "إنشاء حساب جديد" -->
             </div>
 
             <!-- الخطوة 1: استعادة كلمة المرور -->
@@ -246,10 +247,14 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
+        // نفس بيانات المشروع المستخدمة في موقع الطلاب (نفس Supabase project)
         const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // اسم الجدول الخاص بالأدمن - غيّره لو عايز اسم مختلف
         const ADMINS_TABLE = 'admins';
+
         let resetEmailStore = '';
 
         function showForm(formType) {
@@ -280,6 +285,8 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
+        // أهم دالة: التحقق إن الشخص اللي داخل فعلاً "أدمن" مسجل في جدول admins
+        // لو مش موجود، بيتسجل خروج فورًا ومينفعش يدخل لوحة التحكم
         async function verifyIsAdmin(user) {
             const { data, error } = await _supabase
                 .from(ADMINS_TABLE)
@@ -298,7 +305,7 @@
         async function handleOAuth(provider) {
             try {
                 const options = {
-                    redirectTo: window.location.origin + window.location.pathname.replace('login.html','') + 'dashboard.html' // تم التعديل هنا
+                    redirectTo: window.location.origin + window.location.pathname.replace('login.html','') + 'index.html'
                 };
                 if (provider === 'google') {
                     options.queryParams = { prompt: 'select_account' };
@@ -327,8 +334,7 @@
                     const ok = await verifyIsAdmin(data.user);
                     if (!ok) return;
                     showToast('تم تسجيل الدخول بنجاح', 'success');
-                    // التعديل هنا: بدل index.html حطينا dashboard.html
-                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                    setTimeout(() => window.location.href = 'index.html', 1000);
                 }
             } catch (err) {
                 showToast('خطأ في تسجيل الدخول: ' + err.message, 'error');
@@ -387,8 +393,7 @@
                 showToast(error.message, 'error');
             } else {
                 showToast('تم تغيير كلمة المرور بنجاح!', 'success');
-                // التعديل هنا برضه
-                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+                setTimeout(() => window.location.href = 'index.html', 1000);
             }
         }
 
@@ -396,171 +401,9 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (session && document.getElementById('reset-password-form').style.display !== 'block') {
                 const ok = await verifyIsAdmin(session.user);
-                if (ok) window.location.href = 'dashboard.html'; // والتعديل هنا
+                if (ok) window.location.href = 'index.html';
             }
         });
     </script>
 </body>
-</html>        }
-        .topbar-left { display: flex; align-items: center; gap: 14px; }
-        .hamburger-btn {
-            background: none; border: none; cursor: pointer;
-            font-size: 20px; color: var(--text);
-            width: 40px; height: 40px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .hamburger-btn:hover { background: var(--bg); }
-        .topbar-logo { font-weight: 800; font-size: 18px; color: var(--primary); }
-
-        .topbar-user { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .topbar-user img {
-            width: 38px; height: 38px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--border);
-        }
-        .topbar-user-name { font-size: 14px; font-weight: 600; }
-
-        /* القائمة الجانبية */
-        .sidebar-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.4);
-            z-index: 199;
-            display: none;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0; right: -300px; /* مخفية بره الشاشة يمين */
-            width: 280px; height: 100%;
-            background: var(--bg-card);
-            box-shadow: var(--shadow-lg);
-            z-index: 200;
-            transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
-            display: flex; flex-direction: column;
-        }
-        .sidebar.open { right: 0; }
-        .sidebar-header {
-            padding: 20px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .sidebar-close { background: none; border: none; font-size: 18px; cursor: pointer; }
-        .sidebar-nav { padding: 12px; flex: 1; overflow-y: auto; }
-        .sidebar-link {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 14px; border-radius: 10px;
-            color: var(--text); text-decoration: none;
-            font-size: 14px; font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .sidebar-link i { width: 20px; text-align: center; color: var(--primary); }
-        .sidebar-link:hover { background: var(--bg); }
-        .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
-        .logout-btn {
-            width: 100%; padding: 10px; border-radius: 10px;
-            background: #fee2e2; color: #ef4444; border: none;
-            font-weight: 700; cursor: pointer;
-        }
-
-        .content { padding: 24px; }
-    </style>
-</head>
-<body>
-
-    <!-- الشريط العلوي -->
-    <div class="topbar">
-        <div class="topbar-left">
-            <button class="hamburger-btn" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <span class="topbar-logo">لوحة الإدارة</span>
-        </div>
-        <div class="topbar-user" onclick="toggleSidebar()">
-            <span class="topbar-user-name" id="topbar-user-name">جاري التحميل...</span>
-            <img id="topbar-user-avatar" src="https://ui-avatars.com/api/?name=A" alt="صورة المستخدم">
-        </div>
-    </div>
-
-    <!-- القائمة الجانبية -->
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="flex items-center gap-2">
-                <img id="sidebar-user-avatar" src="" style="width:44px;height:44px;border-radius:50%;">
-                <div>
-                    <div id="sidebar-user-name" style="font-weight:700;font-size:14px;"></div>
-                    <div id="sidebar-user-email" style="font-size:12px;color:var(--text-secondary);"></div>
-                </div>
-            </div>
-            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="sidebar-link"><i class="fas fa-house"></i> الرئيسية</a>
-            <a href="#" class="sidebar-link"><i class="fas fa-users"></i> الطلاب</a>
-            <a href="#" class="sidebar-link"><i class="fas fa-layer-group"></i> الجروبات</a>
-            <a href="#" class="sidebar-link"><i class="fas fa-file-lines"></i> المحتوى</a>
-            <a href="#" class="sidebar-link"><i class="fas fa-gear"></i> الإعدادات</a>
-        </nav>
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
-        </div>
-    </div>
-
-    <!-- المحتوى -->
-    <div class="content">
-        <h2>مرحبًا بك في لوحة التحكم</h2>
-        <p style="color:var(--text-secondary); margin-top:8px;">هنا تحط باقي عناصر الداشبورد (إحصائيات، جداول، إلخ).</p>
-    </div>
-
-    <script>
-        const SUPABASE_URL = 'https://bzkbamohnjjzwxlvnodm.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_u48RJaZLVcDk-rXmzsl0NQ_N9egVFEb';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const ADMINS_TABLE = 'admins';
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            const overlay = document.getElementById('sidebar-overlay');
-            overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
-        }
-
-        async function handleLogout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        // تحميل بيانات المستخدم (الاسم والصورة من جوجل أو من الإيميل)
-        async function loadUser() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const user = session.user;
-
-            // التأكد إنه فعلاً أدمن (نفس الفحص اللي في صفحة اللوجين)
-            const { data: adminRow, error } = await _supabase
-                .from(ADMINS_TABLE)
-                .select('id')
-                .eq('id', user.id)
-                .maybeSingle();
-
-            if (error || !adminRow) {
-                await _supabase.auth.signOut();
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-            const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture
-                || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4f46e5&color=fff`;
-
-            document.getElementById('topbar-user-name').innerText = name;
-            document.getElementById('topbar-user-avatar').src = avatar;
-            document.getElementById('sidebar-user-name').innerText = name;
-            document.getElementById('sidebar-user-email').innerText = user.email;
-            document.getElementById('sidebar-user-avatar').src = avatar;
-        }
-
-        window.addEventListener('DOMContentLoaded', loadUser);
-    </script>
-</body>
-              </html>
+</html>
